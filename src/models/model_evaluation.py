@@ -6,6 +6,7 @@ import logging
 import mlflow
 import dagshub
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+import os
 
 # Setting up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -72,6 +73,24 @@ def save_metrics(metrics, output_path):
         logging.error(f"Error saving metrics: {e}")
         raise e
 
+def save_run_info(run_id, model_uri, output_path='reports/run_info.json'):
+    """Save MLflow run information"""
+    try:
+        run_info = {
+            'run_id': run_id,
+            'model_uri': model_uri
+        }
+        
+        # Create reports directory if it doesn't exist
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        
+        with open(output_path, 'w') as f:
+            json.dump(run_info, f, indent=4)
+        logging.info(f"Run info saved to {output_path}")
+    except Exception as e:
+        logging.error(f"Error saving run info: {e}")
+        raise e
+
 def main():
     try:
         # Setup MLflow
@@ -79,14 +98,14 @@ def main():
         
         # Load test data
         test_data = load_data('./data/processed/test_processed.csv')
-        X_test = test_data.iloc[:, :-1]  # All columns except the last one
-        y_test = test_data.iloc[:, -1]   # Last column is the target
+        X_test = test_data.iloc[:, :-1]
+        y_test = test_data.iloc[:, -1]
         
         # Load model
         model = load_model('models/model.pkl')
         
         # Start MLflow run
-        with mlflow.start_run(run_name="model_evaluation"):
+        with mlflow.start_run(run_name="model_evaluation") as run:
             # Log model parameters
             model_params = model.get_params()
             mlflow.log_params(model_params)
@@ -98,10 +117,15 @@ def main():
             mlflow.log_metrics(metrics)
             
             # Log the model
-            mlflow.sklearn.log_model(model, "random_forest_model")
+            model_path = "random_forest_model"
+            mlflow.sklearn.log_model(model, model_path)
             
             # Save metrics locally
             save_metrics(metrics, 'reports/metrics.json')
+            
+            # Save run information
+            model_uri = f"runs:/{run.info.run_id}/{model_path}"
+            save_run_info(run.info.run_id, model_uri)
             
             logging.info("Model evaluation and logging completed successfully")
             

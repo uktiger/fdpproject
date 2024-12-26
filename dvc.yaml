@@ -30,5 +30,13 @@ stages:
     - data/processed
     - models/model.pkl
     - src/models/model_evaluation.py
+    outs:
+    - reports/run_info.json
     metrics:
+    - reports/metrics.json
+  model_registration:
+    cmd: python src/models/model_register.py
+    deps:
+    - src/models/model_register.py
+    - reports/run_info.json
     - reports/metrics.json
