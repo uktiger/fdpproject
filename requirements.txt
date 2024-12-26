@@ -6,6 +6,7 @@ dagshub
 dvc
 ipykernel
 
+flask
 
 
 
