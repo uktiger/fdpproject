@@ -1,0 +1,16 @@
+pandas
+numpy
+mlflow
+scikit-learn
+dagshub
+
+
+
+
+
+
+
+
+
+
+
