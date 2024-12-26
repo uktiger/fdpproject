@@ -1,0 +1,78 @@
+schema: '2.0'
+stages:
+  data_ingestion:
+    cmd: python src/data/data_ingestion.py
+    deps:
+    - path: src/data/data_ingestion.py
+      hash: md5
+      md5: fe0b5dac4d8f5e43c491247beebdcdc6
+      size: 3515
+    params:
+      params.yaml:
+        data_ingestion.test_size: 0.3
+    outs:
+    - path: data/raw
+      hash: md5
+      md5: 292ffb31c931aaf59051be253758aaeb.dir
+      size: 364266
+      nfiles: 2
+  data_preprocessing:
+    cmd: python src/features/data_preprocessing.py
+    deps:
+    - path: data/raw
+      hash: md5
+      md5: 292ffb31c931aaf59051be253758aaeb.dir
+      size: 364266
+      nfiles: 2
+    - path: src/features/data_preprocessing.py
+      hash: md5
+      md5: 5fd835f373fca8336090e373bedb9be5
+      size: 4301
+    outs:
+    - path: data/processed
+      hash: md5
+      md5: 8cbd9b99ec1dc6f78e0c61aaf6f4e36d.dir
+      size: 783241
+      nfiles: 2
+  model_building:
+    cmd: python src/models/model_building.py
+    deps:
+    - path: data/processed
+      hash: md5
+      md5: 8cbd9b99ec1dc6f78e0c61aaf6f4e36d.dir
+      size: 783241
+      nfiles: 2
+    - path: src/models/model_building.py
+      hash: md5
+      md5: 3c1ed5cd7cb0ded184cb337bd6e43e5f
+      size: 2952
+    params:
+      params.yaml:
+        model_building.n_estimators: 15
+        model_building.random_state: 42
+    outs:
+    - path: models/model.pkl
+      hash: md5
+      md5: 6fc7a2b51ceb1f58e601b5c2c85f7088
+      size: 210038
+  model_evaluation:
+    cmd: python src/models/model_evaluation.py
+    deps:
+    - path: data/processed
+      hash: md5
+      md5: 8cbd9b99ec1dc6f78e0c61aaf6f4e36d.dir
+      size: 783241
+      nfiles: 2
+    - path: models/model.pkl
+      hash: md5
+      md5: 6fc7a2b51ceb1f58e601b5c2c85f7088
+      size: 210038
+    - path: src/models/model_evaluation.py
+      hash: md5
+      md5: a9b74af83fefa3dd2fd8aec59f3460a5
+      size: 3799
+    outs:
+    - path: reports/metrics.json
+      hash: md5
+      md5: ba69d3accc004480078e4dffa6248375
+      size: 150
