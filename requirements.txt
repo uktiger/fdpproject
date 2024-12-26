@@ -3,7 +3,8 @@ numpy
 mlflow
 scikit-learn
 dagshub
-
+dvc
+ipykernel
 
 
 
