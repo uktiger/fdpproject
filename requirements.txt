@@ -9,6 +9,7 @@ ipykernel
 flask
 gunicorn
 python-dotenv
+joblib
 
 
 

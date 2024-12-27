@@ -5,6 +5,9 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, recall_score, precision_score
 import dagshub
+import joblib
+import os
+import pickle
 
 # Load and preprocess data
 df = pd.read_csv("data/external/loan_approval_dataset.csv")
@@ -13,8 +16,24 @@ df.columns = df.columns.str.replace(' ', '')
 x = df.drop(['loan_id', 'loan_status'], axis=1)
 y = df['loan_status']
 x = pd.get_dummies(x)
+
+# Create models directory if it doesn't exist
+os.makedirs('models', exist_ok=True)
+
+# Fit and save the scaler
 scaler = MinMaxScaler()
 x_scaled = scaler.fit_transform(x)
+
+# Define the relative path
+relative_path = os.path.join("flask-app", "models", "minmax_scaler.pkl")
+
+# Ensure the directory exists
+os.makedirs(os.path.dirname(relative_path), exist_ok=True)
+
+# Save the scaler
+with open(relative_path, "wb") as file:
+    pickle.dump(scaler, file)
+
 
 x_train, x_test, y_train, y_test = train_test_split(x_scaled, y, test_size=0.2, random_state=42)
 

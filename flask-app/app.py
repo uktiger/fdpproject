@@ -2,8 +2,10 @@ from flask import Flask, request, jsonify, render_template
 import mlflow
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 import logging
+import joblib
+import os
 
 # Setting up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -14,20 +16,34 @@ app = Flask(__name__)
 # Setup MLflow
 mlflow.set_tracking_uri("https://dagshub.com/AdityaThakare72/mlops-project-1.mlflow")
 
-def load_model():
-    """Load the production model from MLflow model registry"""
+# Get the absolute path to the models directory within flask-app
+MODELS_DIR = os.path.join(os.path.dirname(__file__), 'models')
+
+def load_model_and_scaler():
+    """Load the production model and scaler"""
     try:
+        # Load model from MLflow
         model = mlflow.pyfunc.load_model(f"models:/loan_approval_model/Production")
-        logging.info("Production model loaded successfully")
-        return model
+        
+        # Load scaler from local file
+        scaler_path = os.path.join(MODELS_DIR, 'minmax_scaler.pkl')
+        print(f"Looking for scaler at: {scaler_path}")  # Debug print
+        
+        if not os.path.exists(scaler_path):
+            raise FileNotFoundError(f"Scaler file not found at {scaler_path}")
+            
+        scaler = joblib.load(scaler_path)
+        
+        logging.info("Model and scaler loaded successfully")
+        return model, scaler
     except Exception as e:
-        logging.error(f"Error loading model: {e}")
+        logging.error(f"Error loading model and scaler: {e}")
         raise e
 
-def prepare_features(form_data):
-    """Prepare features for prediction"""
+def prepare_features(form_data, scaler):
+    """Prepare features for prediction using the saved scaler"""
     try:
-        # Create feature dictionary
+        # Create feature dictionary with exact column names (notice the spaces after underscores)
         features = {
             'no_of_dependents': int(form_data['no_of_dependents']),
             'income_annum': float(form_data['income_annum']),
@@ -38,18 +54,17 @@ def prepare_features(form_data):
             'commercial_assets_value': float(form_data['commercial_assets_value']),
             'luxury_assets_value': float(form_data['luxury_assets_value']),
             'bank_asset_value': float(form_data['bank_asset_value']),
-            'education_Graduate': 1 if form_data['education'] == 'Graduate' else 0,
-            'education_Not Graduate': 1 if form_data['education'] == 'Not Graduate' else 0,
-            'self_employed_No': 1 if form_data['self_employed'] == 'No' else 0,
-            'self_employed_Yes': 1 if form_data['self_employed'] == 'Yes' else 0
+            'education_ Graduate': 1 if form_data['education'] == 'Graduate' else 0,
+            'education_ Not Graduate': 1 if form_data['education'] == 'Not Graduate' else 0,
+            'self_employed_ No': 1 if form_data['self_employed'] == 'No' else 0,
+            'self_employed_ Yes': 1 if form_data['self_employed'] == 'Yes' else 0
         }
         
         # Convert to DataFrame
         df = pd.DataFrame([features])
         
-        # Scale the features
-        scaler = StandardScaler()
-        scaled_features = scaler.fit_transform(df)
+        # Use the loaded scaler
+        scaled_features = scaler.transform(df)
         scaled_df = pd.DataFrame(scaled_features, columns=df.columns)
         
         logging.info("Features prepared successfully")
@@ -82,11 +97,11 @@ def predict():
             "bank_asset_value": request.form.get("bank_asset_value"),
         }
         
-        # Load model
-        model = load_model()
+        # Load model and scaler
+        model, scaler = load_model_and_scaler()
         
-        # Prepare features
-        features = prepare_features(form_data)
+        # Prepare features using the loaded scaler
+        features = prepare_features(form_data, scaler)
         
         # Make prediction
         prediction = model.predict(features)
