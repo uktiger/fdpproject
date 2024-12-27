@@ -4,80 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Loan Prediction Result</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .result {
-            margin: 20px 0;
-            padding: 20px;
-            border-radius: 4px;
-        }
-        .approved {
-            background-color: #dff0d8;
-            border: 1px solid #d6e9c6;
-            color: #3c763d;
-        }
-        .rejected {
-            background-color: #f2dede;
-            border: 1px solid #ebccd1;
-            color: #a94442;
-        }
-        .details {
-            margin-top: 20px;
-        }
-        .details h2 {
-            color: #333;
-        }
-        .details table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .details th, .details td {
-            padding: 8px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        .back-button {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-        }
-        .back-button:hover {
-            background-color: #45a049;
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <h1>Loan Prediction Result</h1>
-    
-    <div class="result {{ 'approved' if prediction == 'Approved' else 'rejected' }}">
-        <h2>Loan Status: {{ prediction }}</h2>
-    </div>
+    <div class="container">
+        <div class="result-container">
+            {% if prediction == "Approved" %}
+                <h1 class="result-approved">🎉 Congratulations!</h1>
+                <p>Your loan application has been approved! We're excited to help you achieve your financial goals.</p>
+            {% else %}
+                <h1 class="result-rejected">📋 Application Status</h1>
+                <p>We regret to inform you that your loan application was not approved at this time. Consider improving your credit score or adjusting your loan amount and trying again.</p>
+            {% endif %}
 
-    <div class="details">
-        <h2>Submitted Information</h2>
-        <table>
-            <tr>
-                <th>Field</th>
-                <th>Value</th>
-            </tr>
-            {% for key, value in form_data.items() %}
-            <tr>
-                <td>{{ key.replace('_', ' ').title() }}</td>
-                <td>{{ value }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-    </div>
+            <div class="details">
+                <h2>Application Details</h2>
+                <table>
+                    <tr>
+                        <th>Field</th>
+                        <th>Value</th>
+                    </tr>
+                    {% for key, value in form_data.items() %}
+                    <tr>
+                        <td>{{ key.replace('_', ' ').title() }}</td>
+                        <td>{{ value }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
 
-    <a href="/" class="back-button">Make Another Prediction</a>
+            <a href="/" class="back-button">Make Another Prediction</a>
+        </div>
+    </div>
 </body>
 </html>

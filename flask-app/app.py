@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, url_for
 import mlflow
 import pandas as pd
 import numpy as np
@@ -10,8 +10,8 @@ import os
 # Setting up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Initialize Flask app
-app = Flask(__name__)
+# Initialize Flask app with static folder
+app = Flask(__name__, static_folder='static')
 
 # Setup MLflow
 mlflow.set_tracking_uri("https://dagshub.com/AdityaThakare72/mlops-project-1.mlflow")
